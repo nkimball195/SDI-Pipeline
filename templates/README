@@ -1,0 +1,3 @@
+Image templates for all image locations can be placed here.
+Make sure there is only one template image with the same CAT-RA, CAT-DEC, and FILTER values in the image header otherwise there
+will be an error when attempting to match images with their template.
