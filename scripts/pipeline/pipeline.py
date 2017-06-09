@@ -68,8 +68,11 @@ def newfolder(folder):
     new = '%s/%s.%s' %(output, new, folder)
     os.mkdir(new)
 
-def newoutput():
-    name = createname(project_name)
+def newoutput(NAME=''):
+    if NAME == '':
+        name = createname(project_name)
+    else:
+        name = NAME
     log = open("%s/%s.log" % (logs, name), 'w')
     log.write("# " + "Output".ljust(9) + ": " + "%s/%s\n"% (outputs, name))
     log.close()
@@ -116,24 +119,66 @@ def updatelog():
                 file.write('%s\n' % logline)
             hdulist.close()
             
-def getimages(path):
-    images = []
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            if file.endswith('.fits'):
-                file = os.path.join(root, file)
-                images.append(file)
-    return images
-    
-def getfiles(path, extension='', prefix='', join=True):
+def getfiles(path, ext='', pre='', join=True):
     filelist = []
     for root, dirs, files in os.walk(path):
         for file in files:
-            if file.endswith(extension) and file.startswith(prefix):
+            if file.endswith(ext) and file.startswith(pre):
                 if join == True:
                     filelist.append(os.path.join(root, file))
                 elif join == False:
                     filelist.append(file)
     return filelist
 
-            
+def getimages(path):
+    return getfiles(path, ext='fits')    
+
+def recursive_del(folder):
+    loop=[]
+    for root, dirs, files in os.walk(folder):
+        for dir in dirs:
+            dir=os.path.join(root, dir)
+            loop.append(len(os.listdir(dir)))
+    if 0 in loop:
+        delete_empty(folder)
+        recursive_del(folder)
+    else:
+        print ""
+
+def delete_empty(folder):
+    for root, dirs, files in os.walk(folder):
+        for dir in dirs:
+            dir=os.path.join(root, dir)
+            if len(os.listdir(dir)) == 0:
+                os.rmdir(dir)
+
+def clear(path, q=False):
+    if q == False:
+        check = raw_input('Delete ALL files and folders from %s? [y/n]\n>>>' % path)
+        if check == 'y' or check == 'Y':
+            for root, dirs, files in os.walk(path):
+                for file in files:
+                    if file != 'README':
+                        file = os.path.join(root, file)
+                        os.system('rm %s' % file)
+            recursive_del(path)
+        else:
+            quit()
+    elif q == True:
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                if file != 'README':
+                    file = os.path.join(root, file)
+                    os.system('rm %s' % file)
+        recursive_del(path)
+
+def clearall(t=False):
+    check = raw_input('Delete ALL input, output, and log files?[y/n]\n>>>')
+    if check == 'y' or check == 'Y':
+        clear(input, q=True)
+        clear(outputs, q=True)
+        clear(logs, q=True)
+        if t == True:
+            clear(templates)
+    else:
+        quit()
